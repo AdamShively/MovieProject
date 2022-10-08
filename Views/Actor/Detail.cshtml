@@ -1,0 +1,50 @@
+﻿@using MovieProject.Models.TmDb
+@using MovieProject
+@model ActorDetail
+
+<div class="row">
+    <div class="col-md-5 col-12">
+        <img src="@Model.profile_path" class="w-100 mx-auto" alt="Actor Picture" />
+        <div class="row pt-3 text-center">
+            @{
+                var controller = (TempData["movie_id"] == null) ? "Home" : "Movies";
+                var action = (TempData["movie_id"] == null) ? "Index" : "Details";
+                var btnText = (TempData["movie_id"] == null) ? "Homepage" : "Movie";
+
+                <form asp-controller="@controller" asp-action="@action" asp-route-id="@TempData["movie_id"]">
+                    <button asp-for="Id" type="submit" class="btn btn-lg btn-gradient-primary-to-secondary fw-bold text-light w-50">Return to @btnText</button>
+                </form>
+            }
+        </div>
+    </div>
+    <div class="col-md-7 col-12">
+        <table class="table">
+            <tbody>
+                <tr>
+                    <td class="label-header">Name:</td>
+                    <td>
+                        @Model.name
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-header">Biography:</td>
+                    <td>
+                        @Model.biography
+                    </td>
+                </tr>
+                <tr>
+                    <td class="labelHeader">Birthday:</td>
+                    <td>
+                        @Model.birthday
+                    </td>
+                </tr>
+                <tr>
+                    <td class="label-header">Place of birth:</td>
+                    <td>
+                        @Model.place_of_birth
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

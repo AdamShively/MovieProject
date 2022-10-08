@@ -1,0 +1,107 @@
+﻿@using MovieProject.Models.Database
+@using MovieProject.Services.Interfaces
+@inject IImageService _imageService
+
+@model List<Movie>
+
+@{
+    var isAdmin = User.IsInRole("Administrator");
+    var count = 0;
+    var movCount = Model.Count;
+    var pleural = (movCount > 1 || movCount < 1) ? "Movies" : "Movie";
+}
+
+<div class="row">
+
+    <p>@movCount @pleural in Imported Library</p>
+
+    <hr class="fw-bold" />
+    <div class="col-12 text-center">
+        <h1 class="movieTitle fw-bolder mb-5 text-gray-600">Imported Movies Library</h1>
+        <h6 class="mb-5 text-gray-600">
+            Imported movies from the TMDB API can be viewed below. Movies can be added to custom movie collections by clicking "Manage Collections" in navigation bar
+            if user has administrative access. To gain administrative access, click "Demo Admin" in the navigation bar.
+        </h6>
+    </div>
+    <div class="row mx-auto">
+        @foreach (var movie in Model)
+        {
+            var trailerId = "trailer" + count;
+            var idTarget = '#' + trailerId;
+            <div class="border border-gray-600 col-6 col-md-3 mb-2">
+                <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.TmBdMovieId" class="overlay">
+                    <div class="card clean">
+                        @{
+                            string overview = @movie.Overview;
+                            int overviewLength = overview.Length;
+                            int maxCharacters = 150;
+                            if (overviewLength > maxCharacters)
+                            {
+                                overview = overview.Substring(0, maxCharacters) + "...";
+                            }
+                        }
+                        <div class="fixOverlay card-img mt-2" data-overview="@overview">
+
+                            <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+                            <img src="@_imageService.DecodeImage(movie.PosterImageData, movie.PosterContentType)" class="image2 img-fluid importPoster" alt="Movie Poster Image">
+                        </div>
+                        <div class="card-body bg-gradient-gray-to-blue mb-2">
+                            <h5 class="card-title clampTitle text-light">
+                                @movie.Title
+                            </h5>
+                        </div>
+                    </div>
+                </a>
+
+                <div class="row mb-3">
+                    @{
+
+                        if (isAdmin)
+                        {
+                            <div class="col-6 mx-auto">
+                                <form id="subscriptionForm" action="/Home/SubmitSubscription" method="post">
+                                    <button type="button" class="btn btn-lg btn-gradient-primary-to-secondary fw-bold text-light w-100"
+                                    data-bs-toggle="modal" data-bs-target="#deleteMovieModal_@movie.TmBdMovieId">Delete</button>
+                                </form>
+                            </div>
+                        }
+                    }
+                </div>
+
+                @* Delete Modal *@
+                <div class="modal fade" id="deleteMovieModal_@movie.TmBdMovieId" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content bg-blue-soft text-gray-600">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Delete Movie Collection</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <hr class="fw-bolder" />
+                            <div class="modal-body bg-light">
+                                <div class="form-group">
+                                    <p>WARNING! You are about to delete the movie titled "@movie.Title" from imported movies.</p>
+                                    <p>This is permanent.</p>
+                                </div>
+                            </div>
+                            <hr class="fw-bolder" />
+                            <div class="modal-footer">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <form asp-action="Delete" asp-controller="Movies">
+                                            <input type="hidden" name="id" value="@movie.TmBdMovieId" />
+                                            <button type="submit" class="btn btn-gradient-primary-to-secondary btn-md mx-auto">Delete</button>
+                                        </form>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-gradient-primary-to-secondary btn-md mx-auto" data-bs-dismiss="modal">Close</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            count++;
+        }
+    </div>
+</div>

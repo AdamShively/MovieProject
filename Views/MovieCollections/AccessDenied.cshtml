@@ -1,0 +1,14 @@
+﻿
+@{
+    ViewData["Title"] = "Access Denied";
+}
+
+<header>
+    <h1 class="text-danger">@ViewData["Title"]</h1>
+    <p class="text-danger">You must be logged in as an administrator to view this page.</p>
+    <div class="col-4">
+        <form asp-controller="Home" asp-action="Index" asp-route-id="">
+            <button asp-for="Id" type="submit" class="btn btn-gradient-primary-to-secondary fw-bold text-light w-50">Return to Homepage</button>
+        </form>
+    </div>
+</header>

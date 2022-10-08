@@ -1,0 +1,509 @@
+﻿@using MovieProject.ViewModels
+@using MovieProject.Models.TmDb
+@using MovieProject.Services.Interfaces
+@inject IImageService _imageService
+
+@model LandingPageVm
+@{
+    var idCount = 0;
+    var collId = string.Empty;
+    var numOfCards = 3;
+    var customCollections = Model.CustomCollections;
+    var index = 0;
+}
+@{
+    <div class="text-center pb-4">
+
+        @if (@customCollections.Count > 0)
+        {
+            var customId = string.Empty;
+            @for (int i = 0; i < customCollections.Count; i++)
+            {
+                customId = "customId" + i;
+                <p style="display:inline-block;"><a class="nav-link" href="#@customId">@customCollections[i].Name</a></p>
+            }
+        }
+
+        <p style="display:inline-block;"><a class="nav-link" href="#upcoming">Upcoming</a></p>
+        <p style="display:inline-block;"><a class="nav-link" href="#nowplaying">Now Playing</a></p>
+        <p style="display:inline-block;"><a class="nav-link" href="#popular">Popular</a></p>
+        <p style="display:inline-block;"><a class="nav-link" href="#toprated">Top Rated</a></p>
+    </div>
+    <hr>
+    @*-------------------------------------------------Custom Collections-------------------------------------------------------*@
+
+    foreach (var collection in Model.CustomCollections)
+    {
+        var customId = "customId" + @index;
+
+        <section id="@customId">
+
+            @*------------------sm screen size--------------------------*@
+
+            @{
+                var movCollCount = collection.MovieCollections.Count;
+            }
+
+            @if (movCollCount > 0)
+            {
+                <div class="px-4 pb-5 small-screen-carousel">
+                    <div class="row">
+                        <h1 class="text-gray-600 font-weight-bolder ps-sm-5 ps-lg-10 coll-title" id="movTitle">@collection.Name</h1>
+                    </div>
+                    @{
+                        collId = "collId" + @idCount;
+                    }
+                    <div class="row">
+                        <div id="@collId" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @{
+                                    var classText = "active";
+                                    numOfCards = 2;
+
+                                    //Check if there will be a partial slide.
+                                    var isMult = (movCollCount % numOfCards == 0) ? 0 : 1;
+
+                                    //If the number of movies in movie collection is not evenly divisible by number of cards, then the last slide will not be completely full.
+                                    //We will need to add 1 to the number of slides created to compensate for this partial slide.
+                                    var carouselLength = movCollCount / numOfCards + isMult;
+
+                                    for (var slide = 0; slide < carouselLength; slide++)
+                                    {
+                                        <div class="carousel-item @classText" data-bs-interval="3000">
+                                            <div class="row">
+                                                @foreach (var movie in collection.MovieCollections.Skip(slide * numOfCards).Take(numOfCards))
+                                                {
+                                                    <div class="col-6 mb-2">
+                                                        <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.Movie.TmBdMovieId" class="overlay">
+                                                            <div class="card clean border border-2">
+                                                                @{
+                                                                    string overview = @movie.Movie.Overview;
+                                                                    int overviewLength = @overview.Length;
+                                                                    int maxCharacters = 150;
+                                                                    if (overviewLength > maxCharacters)
+                                                                    {
+                                                                        overview = overview.Substring(0, maxCharacters) + "...";
+                                                                    }
+                                                                }
+
+                                                                <div class="fix-overlay card-img" data-overview="@overview">
+                                                                    <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+                                                                    <img src="@_imageService.DecodeImage(movie.Movie.PosterImageData, movie.Movie.PosterContentType)" alt="Missing Image" class=" image2 card-img-top img-fluid">
+                                                                </div>
+                                                                <div class="card-body bg-gradient-gray-to-blue">
+                                                                    <h5 class="card-title clampTitle text-light">
+                                                                        @movie.Movie.Title
+                                                                    </h5>
+                                                                </div>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        if (classText == "active")
+                                        {
+                                            classText = "";
+                                        }
+                                    }
+                                }
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#@collId" data-bs-slide="prev">
+                                <img src="~/img/prev.png" class="carousel-control-img" aria-hidden=" true" />
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#@collId" data-bs-slide="next">
+                                <img src="~/img/next.png" class="carousel-control-img" aria-hidden=" true" />
+                            </button>
+                        </div>
+                    </div>
+                    @{
+                        idCount++;
+                    }
+                </div>
+
+                @*------------------md screen size--------------------------*@
+
+                <div class="px-4 pb-5 medium-screen-carousel">
+                    <div class="row">
+                        <h1 class="text-gray-600 font-weight-bolder ps-sm-5 ps-lg-10 coll-title" id="movTitle">@collection.Name</h1>
+                    </div>
+                    @{
+                        collId = "collId" + @idCount;
+                    }
+                    <div class="row">
+                        <div id="@collId" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @{
+                                    classText = "active";
+                                    numOfCards = 3;
+
+                                    //Check if there will be a partial slide.
+                                    isMult = (movCollCount % numOfCards == 0) ? 0 : 1;
+
+                                    //If the number of movies in movie collection is not evenly divisible by number of cards, then the last slide will not be completely full.
+                                    //We will need to add 1 to the number of slides created to compensate for this partial slide.
+                                    carouselLength = movCollCount / numOfCards + isMult;
+
+                                    for (var slide = 0; slide < carouselLength; slide++)
+                                    {
+                                        <div class="carousel-item @classText" data-bs-interval="3000">
+                                            <div class="row">
+                                                @foreach (var movie in collection.MovieCollections.Skip(slide * numOfCards).Take(numOfCards))
+                                                {
+                                                    <div class="col-4 mb-2">
+                                                        <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.Movie.TmBdMovieId" class="overlay">
+                                                            <div class="card clean border border-2">
+                                                                @{
+                                                                    string overview = @movie.Movie.Overview;
+                                                                    int overviewLength = @overview.Length;
+                                                                    int maxCharacters = 150;
+                                                                    if (overviewLength > maxCharacters)
+                                                                    {
+                                                                        overview = overview.Substring(0, maxCharacters) + "...";
+                                                                    }
+                                                                }
+
+                                                                <div class="fix-overlay card-img" data-overview="@overview">
+                                                                    <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+
+                                                                    <img src="@_imageService.DecodeImage(movie.Movie.PosterImageData, movie.Movie.PosterContentType)" alt="Missing Image" class=" image2 card-img-top img-fluid">
+                                                                </div>
+                                                                <div class="card-body bg-gradient-gray-to-blue">
+                                                                    <h5 class="card-title clampTitle text-light">
+                                                                        @movie.Movie.Title
+                                                                    </h5>
+                                                                </div>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        if (classText == "active")
+                                        {
+                                            classText = "";
+                                        }
+                                    }
+                                }
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#@collId" data-bs-slide="prev">
+                                <img src="~/img/prev.png" class="carousel-control-img" aria-hidden=" true" />
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#@collId" data-bs-slide="next">
+                                <img src="~/img/next.png" class="carousel-control-img" aria-hidden=" true" />
+                            </button>
+                        </div>
+                    </div>
+                    @{
+                        idCount++;
+                    }
+                </div>
+
+                @*------------------lg screen size--------------------------*@
+
+                <div class="px-4 pb-5 large-screen-carousel">
+                    <div class="row">
+                        <h1 class="text-gray-600 font-weight-bolder ps-sm-5 ps-lg-10 coll-title" id="movTitle">@collection.Name</h1>
+                    </div>
+                    @{
+                        collId = "collId" + @idCount;
+                    }
+                    <div class="row shadow-lg">
+                        <div id="@collId" class="carousel slide" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                @{
+                                    classText = "active";
+                                    numOfCards = 4;
+
+                                    //Check if there will be a partial slide.
+                                    isMult = (movCollCount % numOfCards == 0) ? 0 : 1;
+
+                                    //If the number of movies in movie collection is not evenly divisible by number of cards, then the last slide will not be completely full.
+                                    //We will need to add 1 to the number of slides created to compensate for this partial slide.
+                                    carouselLength = movCollCount / numOfCards + isMult;
+
+                                    for (var slide = 0; slide < carouselLength; slide++)
+                                    {
+                                        <div class="carousel-item @classText" data-bs-interval="3000">
+                                            <div class="row">
+                                                @foreach (var movie in collection.MovieCollections.Skip(slide * numOfCards).Take(numOfCards))
+                                                {
+                                                    <div class="col-3 mb-2">
+                                                        <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.Movie.TmBdMovieId" class="overlay">
+                                                            <div class="card clean border border-2">
+                                                                @{
+                                                                    string overview = @movie.Movie.Overview;
+                                                                    int overviewLength = @overview.Length;
+                                                                    int maxCharacters = 150;
+                                                                    if (overviewLength > maxCharacters)
+                                                                    {
+                                                                        overview = overview.Substring(0, maxCharacters) + "...";
+                                                                    }
+                                                                }
+
+                                                                <div class="fix-overlay card-img" data-overview="@overview">
+                                                                    <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+
+                                                                    <img src="@_imageService.DecodeImage(movie.Movie.PosterImageData, movie.Movie.PosterContentType)" alt="Missing Image" class=" image2 card-img-top img-fluid">
+                                                                </div>
+                                                                <div class="card-body bg-gradient-gray-to-blue">
+                                                                    <h5 class="card-title clampTitle text-light">
+                                                                        @movie.Movie.Title
+                                                                    </h5>
+                                                                </div>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                        if (classText == "active")
+                                        {
+                                            classText = "";
+                                        }
+                                    }
+                                }
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#@collId" data-bs-slide="prev">
+                                <img src="~/img/prev.png" class="carousel-control-img" aria-hidden=" true" />
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#@collId" data-bs-slide="next">
+                                <img src="~/img/next.png" class="carousel-control-img" aria-hidden=" true" />
+                            </button>
+                        </div>
+                    </div>
+                    @{
+                        idCount++;
+                        index++;
+                    }
+                </div>
+            }
+        </section>
+    }
+
+    @*-------------------------------------------------Default Collections-------------------------------------------------------*@
+
+    List<MovieSearchResult[]> tmdbMovieCollections = new List<MovieSearchResult[]>() { Model.Upcoming.results, Model.NowPlaying.results, Model.Popular.results, Model.TopRated.results };
+    string[] collectionTitles = new string[] { "Upcoming", "Now Playing", "Popular", "Top Rated" };
+    string[] sectionId = new string[] { "upcoming", "nowplaying", "popular", "toprated" };
+    index = 0;
+
+    foreach (var collection in tmdbMovieCollections)
+    {
+        @*------------------sm screen size--------------------------*@
+        <section id="@sectionId[index]">
+            <div class="px-4 pb-5 small-screen-carousel">
+                <div class="row">
+                    <h1 class="text-gray-600 font-weight-bolder ps-sm-5 ps-lg-10 coll-title" id="movTitle">@collectionTitles[index]</h1>
+                </div>
+                @{
+                    collId = "collId" + @idCount;
+                }
+                <div class="row">
+                    <div id="@collId" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            @{
+                                var classText = "active";
+                                numOfCards = 2;
+
+                                for (var slide = 0; slide < numOfCards; slide++)
+                                {
+                                    <div class="carousel-item @classText" data-bs-interval="3000">
+                                        <div class="row">
+                                            @foreach (var movie in collection.Skip(slide * numOfCards).Take(numOfCards))
+                                            {
+                                                <div class="col-6 mb-2">
+                                                    <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.id" class="overlay">
+                                                        <div class="card clean border border-2">
+                                                            @{
+                                                                string overview = @movie.overview;
+                                                                int overviewLength = @overview.Length;
+                                                                int maxCharacters = 150;
+                                                                if (overviewLength > maxCharacters)
+                                                                {
+                                                                    overview = overview.Substring(0, maxCharacters) + "...";
+                                                                }
+                                                            }
+
+                                                            <div class="fix-overlay card-img" data-overview="@overview">
+                                                                <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+                                                                <img src="@movie.poster_path" class=" image2 ca1rd-image card-img-top img-fluid card-size" alt="Missing Image">
+                                                            </div>
+                                                            <div class="card-body bg-gradient-gray-to-blue">
+                                                                <h5 class="card-title clampTitle text-light">
+                                                                    @movie.title
+                                                                </h5>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+
+                                            }
+                                        </div>
+                                    </div>
+                                    if (classText == "active")
+                                    {
+                                        classText = "";
+                                    }
+                                }
+                            }
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#@collId" data-bs-slide="prev">
+                            <img src="~/img/prev.png" class="carousel-control-img" aria-hidden=" true" />
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#@collId" data-bs-slide="next">
+                            <img src="~/img/next.png" class="carousel-control-img" aria-hidden=" true" />
+                        </button>
+                    </div>
+                </div>
+                @{
+                    idCount++;
+                }
+            </div>
+
+            @*------------------md screen size--------------------------*@
+
+            <div class="px-4 pb-5 medium-screen-carousel">
+                <div class="row">
+                    <h1 class="text-gray-600 font-weight-bolder ps-sm-5 ps-lg-10 coll-title" id="movTitle">@collectionTitles[index]</h1>
+                </div>
+                @{
+                    collId = "collId" + @idCount;
+                }
+                <div class="row">
+                    <div id="@collId" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            @{
+                                classText = "active";
+                                numOfCards = 3;
+
+                                for (var slide = 0; slide < numOfCards; slide++)
+                                {
+                                    <div class="carousel-item @classText" data-bs-interval="3000">
+                                        <div class="row">
+                                            @foreach (var movie in collection.Skip(slide * numOfCards).Take(numOfCards))
+                                            {
+                                                <div class="col-4 mb-2">
+                                                    <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.id" class="overlay">
+                                                        <div class="card clean border border-2">
+                                                            @{
+                                                                string overview = @movie.overview;
+                                                                int overviewLength = @overview.Length;
+                                                                int maxCharacters = 150;
+                                                                if (overviewLength > maxCharacters)
+                                                                {
+                                                                    overview = overview.Substring(0, maxCharacters) + "...";
+                                                                }
+                                                            }
+
+                                                            <div class="fix-overlay card-img" data-overview="@overview">
+                                                                <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+                                                                <img src="@movie.poster_path" class=" image2 ca1rd-image card-img-top img-fluid card-size" alt="Missing Image">
+                                                            </div>
+                                                            <div class="card-body bg-gradient-gray-to-blue">
+                                                                <h5 class="card-title clampTitle text-light">
+                                                                    @movie.title
+                                                                </h5>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+
+                                            }
+                                        </div>
+                                    </div>
+                                    if (classText == "active")
+                                    {
+                                        classText = "";
+                                    }
+                                }
+                            }
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#@collId" data-bs-slide="prev">
+                            <img src="~/img/prev.png" class="carousel-control-img" aria-hidden=" true" />
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#@collId" data-bs-slide="next">
+                            <img src="~/img/next.png" class="carousel-control-img" aria-hidden=" true" />
+                        </button>
+                    </div>
+                </div>
+                @{
+                    idCount++;
+                }
+            </div>
+
+            @*------------------lg screen size--------------------------*@
+
+            <div class="px-4 pb-5 large-screen-carousel">
+                <div class="row">
+                    <h1 class="text-gray-600 font-weight-bolder ps-sm-5 ps-lg-10 coll-title" id="movTitle">@collectionTitles[index]</h1>
+                </div>
+                @{
+                    collId = "collId" + @idCount;
+                }
+                <div class="row">
+                    <div id="@collId" class="carousel slide" data-bs-ride="carousel">
+                        <div class="carousel-inner">
+                            @{
+                                classText = "active";
+                                numOfCards = 4;
+
+                                for (var slide = 0; slide < numOfCards; slide++)
+                                {
+                                    <div class="carousel-item @classText" data-bs-interval="3000">
+                                        <div class="row">
+                                            @foreach (var movie in collection.Skip(slide * numOfCards).Take(numOfCards))
+                                            {
+                                                <div class="col-3 mb-2">
+                                                    <a asp-action="Details" asp-controller="Movies" asp-route-id="@movie.id" class="overlay">
+                                                        <div class="card clean border border-2">
+                                                            @{
+                                                                string overview = @movie.overview;
+                                                                int overviewLength = @overview.Length;
+                                                                int maxCharacters = 150;
+                                                                if (overviewLength > maxCharacters)
+                                                                {
+                                                                    overview = overview.Substring(0, maxCharacters) + "...";
+                                                                }
+                                                            }
+
+                                                            <div class="fix-overlay card-img" data-overview="@overview">
+
+                                                                <img src="~/img/background.jpg" class=" image1 ca1rd-image card-img-top img-fluid card-size" alt="Movie Poster Image">
+                                                                <img src="@movie.poster_path" class=" image2 ca1rd-image card-img-top img-fluid card-size" alt="Missing Image">
+                                                            </div>
+                                                            <div class="card-body bg-gradient-gray-to-blue">
+                                                                <h5 class="card-title clampTitle text-light">
+                                                                    @movie.title
+                                                                </h5>
+                                                            </div>
+                                                        </div>
+                                                    </a>
+                                                </div>
+
+                                            }
+                                        </div>
+                                    </div>
+                                    if (classText == "active")
+                                    {
+                                        classText = "";
+                                    }
+                                }
+                            }
+                        </div>
+                        <button class="carousel-control-prev" type="button" data-bs-target="#@collId" data-bs-slide="prev">
+                            <img src="~/img/prev.png" class="carousel-control-img" aria-hidden=" true" />
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#@collId" data-bs-slide="next">
+                            <img src="~/img/next.png" class="carousel-control-img" aria-hidden=" true" />
+                        </button>
+                    </div>
+                </div>
+                @{
+                    idCount++;
+                    index++;
+                }
+            </div>
+        </section>
+    }
+}

@@ -1,0 +1,10 @@
+﻿@model string
+
+@if (!String.IsNullOrEmpty(Model))
+{
+    var statusMessageClass = Model.StartsWith("Error") ? "danger" : "primary";
+    <div class="alert alert-@statusMessageClass alert-dismissible" role="alert">
+        <button type="button" class="btn-close btn-gradient-primary-to-secondary" data-bs-dismiss="alert" aria-label="Close"></button>
+        @Model
+    </div>
+}

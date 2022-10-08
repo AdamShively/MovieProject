@@ -1,0 +1,278 @@
+﻿@using MovieProject.Models.Database
+@using MovieProject.Services.Interfaces
+@using Microsoft.AspNetCore.Identity
+@model Movie
+
+@inject IImageService _imageService
+@inject UserManager<IdentityUser> _userManager
+
+@{
+    List<string> Writers = new List<string>();
+    List<string> Stars = new List<string>();
+    TempData["movie_id"] = Model.TmBdMovieId;
+    var isAdmin = User.IsInRole("Administrator");
+    var trailerUrl = Model.TrailerUrl;
+    var trailerExists = trailerUrl != null;
+    var displayMessage = TempData["displayMsg"];
+}
+
+<div class="row">
+    @if (displayMessage != null)
+    {
+        <h5 id="disMsg" class="text-primary align-text-center">@displayMessage</h5>
+    }
+    <div class="col-12 col-md-5">
+        <img src="@_imageService.DecodeImage(Model.PosterImageData, Model.PosterContentType)" class="w-100 mx-auto" alt="Movie Poster" />
+        <div class="col pt-3">
+            <div class="row">
+                @{
+                    if (trailerExists)  //Only create button if there is a trailer available.
+                    {
+                        <div class="col-6 mx-auto text-center">
+                            <button class="btn btn-lg btn-gradient-primary-to-secondary fw-bold text-light w-100" data-bs-toggle="modal" data-bs-target="#trailer">Trailer</button>
+                        </div>
+                    }
+                    if (isAdmin)
+                    {
+                        <div class="col-6 mx-auto text-center">
+                            <form asp-controller="Movies" asp-action="Import" asp-route-id="@Model.TmBdMovieId">
+                                <button asp-for="Id" type="submit" class="btn btn-lg btn-gradient-primary-to-secondary fw-bold text-light w-100">Import</button>
+                            </form>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-12 col-md-7">
+        <hr />
+        <div class="row">
+            <div class="col-9">
+                <h2 class="fw-bolder">@Model.Title</h2>
+            </div>
+            <div class="col-3 d-flex align-items-center">
+                <span class="fw-bold text-light" style="font-size: 1rem">@Model.VoteAvg</span><small>/10</small>
+            </div>
+
+        </div>
+        <hr />
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="movie-details">
+                    <button class="active text-light" id="overviewLink">Overview</button>
+                    <button class="inactive" id="castLink">Cast</button>
+                    <button class="inactive" id="crewLink">Crew</button>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <!-- CREW SECTION -->
+            <section class="col-12 hide" id="crewSect">
+                <div class="section-title">Crew</div>
+                <hr class="mt-0" />
+                @foreach (var member in Model.Crew)
+                {
+                    if (member.Job == "Director")
+                    {
+                        ViewData["DirectorName"] = member.Name;
+                    }
+                    if (member.Job == "Writer")
+                    {
+                        Writers.Add(member.Name);
+                    }
+                    <div class="row mb-3">
+                        <div class="col-2">
+                            <img src="@member.ImageUrl" class="img-fluid" style="width: 10rem" alt="Actor Image">
+                        </div>
+                        <div class="col-5">
+                            <small>@member.Name</small>
+                        </div>
+                        <div class="col-5">
+                            <small>@member.Job</small>
+                        </div>
+                    </div>
+                }
+            </section>
+            <!-- OVERVIEW SECTION -->
+            <section class="col-12" id="overviewSect">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="mb-4"><small>@Model.Overview</small></div>
+                        @{
+                            if (@ViewData["DirectorName"] is not null)
+                            {
+                                <div class="row mb-2">
+                                    <div class="col-4">
+                                        <p class="movie">Director:</p>
+                                    </div>
+                                    <div class="col-4">
+                                        <small>@ViewData["DirectorName"]</small>
+                                    </div>
+                                </div>
+                            }
+
+                            if (Writers.Count() > 0)
+                            {
+                                <div class="row mb-2">
+                                    <div class="col-4">
+                                        <p class="label-header">Writers:</p>
+                                    </div>
+                                    <div class="col-4">
+                                        @foreach (var name in Writers)
+                                        {
+                                            <small class="d-block">@name</small>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        }
+                        <div class="row mb-2">
+                            <div class="col-4 ">
+                                <p class="label-header">Release Date:</p>
+                            </div>
+                            <div class="col-4">
+                                <small>@Model.ReleaseDate.ToString("MMM dd, yyyy")</small>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <p class="label-header">Run Time:</p>
+                            </div>
+                            <div class="col-4">
+                                <small>@Model.RunTime minutes</small>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col-4">
+                                <p class="label-header">Rating:</p>
+                            </div>
+                            <div class="col-4">
+                                <small>@Model.Rating</small>
+                            </div>
+                        </div>
+                        <p class="label-header mt-4">Starring</p>
+                        <hr class="mt-0" />
+
+                        @foreach (var actor in Model.Cast.Take(5))
+                        {
+                            <div class="row mb-3">
+                                <div class="col-2">
+                                    <img src="@actor.ImageUrl" class="img-fluid" style="width: 10rem" alt="Actor Image">
+                                </div>
+                                <div class="col-5">
+                                    <a asp-action="Detail" asp-controller="Actor" asp-route-id="@actor.CastID" class="text-decoration-none"><small>@actor.Name</small></a>
+                                </div>
+                                <div class="col-5">
+                                    <small>@actor.Character</small>
+                                </div>
+                            </div>
+                            Stars.Add(actor.Name);
+                        }
+                    </div>
+                </div>
+            </section>
+            <!-- CAST SECTION -->
+            <section class="col-12 hide" id="castSect">
+                <div class="section-title">Cast</div>
+                <hr class="mt-0" />
+                @foreach (var actor in Model.Cast)
+                {
+                    <div class="row mb-3">
+                        <div class="col-2">
+                            <img src="@actor.ImageUrl" class="img-fluid" style="width: 10rem" alt="Actor Image">
+                        </div>
+                        <div class="col-5">
+                            <a asp-action="Detail" asp-controller="Actor" asp-route-id="@actor.CastID" class="text-decoration-none"><small>@actor.Name</small></a>
+                        </div>
+                        <div class="col-5">
+                            <small>@actor.Character</small>
+                        </div>
+                    </div>
+                }
+            </section>
+        </div>
+    </div>
+</div>
+<!-- Modal -->
+
+<div class="modal fade" id="trailer" tabindex="-1" role="dialog" aria-labelledby="trailerLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content bg-blue-soft">
+            <div class="modal-header">
+                <h5 class="modal-title">@Model.Title</h5>
+            </div>
+            <div class="modal-body bg-primary">
+                <div class="embed-responsive embed-responsive-16by9">
+                    @{
+
+                        var key = trailerUrl?.Split("=").Last();    //Isolating the key to use as embed source if trailerUrl is not null.
+                        var source = $"https://www.youtube.com/embed/{key}";
+                    }
+
+                    <iframe class="container-fluid justify-content-center" id="iframeId" width="400" height="271" src="@source"
+                            title="YouTube video player" frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-gradient-primary-to-secondary text-light" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+
+        //Stop audio when close trailer modal.
+        $("#trailer").on('hidden.bs.modal', function (e) {
+            $("#trailer iframe").attr("src", $("#trailer iframe").attr("src"));
+        });
+
+        //Clear display message after 3 seconds.
+        setTimeout(() => {
+            var disMsg = document.getElementById('disMsg');
+
+            disMsg.innerHTML = " ";
+        }, 3000);
+
+        var overLink = document.getElementById("overviewLink"),
+            castLink = document.getElementById("castLink"),
+            crewLink = document.getElementById("crewLink");
+
+        overLink.addEventListener("click", () => {
+            document.getElementById("overviewSect").className = "col-12";
+            document.getElementById("castSect").className = "hide";
+            document.getElementById("crewSect").className = "hide";
+
+            overLink.className = "active text-light";
+            castLink.className = "inactive";
+            crewLink.className = "inactive";
+        });
+
+        castLink.addEventListener("click", () => {
+            document.getElementById("overviewSect").className = "hide";
+            document.getElementById("castSect").className = "col-12";
+            document.getElementById("crewSect").className = "hide";
+
+            overLink.className = "inactive";
+            castLink.className = "active text-light";
+            crewLink.className = "inactive";
+        });
+
+        crewLink.addEventListener("click", () => {
+            document.getElementById("overviewSect").className = "hide";
+            document.getElementById("castSect").className = "hide";
+            document.getElementById("crewSect").className = "col-12";
+
+            overLink.className = "inactive";
+            castLink.className = "inactive";
+            crewLink.className = "active text-light";
+        });
+    </script>
+}

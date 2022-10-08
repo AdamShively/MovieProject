@@ -1,0 +1,96 @@
+﻿@using MovieProject.ViewModels
+@model ContactMe
+
+@{
+    var displayMessage = TempData["displayMsg"];
+}
+
+<div class="container-fluid justify-content-center">
+    <div class="row">
+        <div class="col-10 col-lg-8">
+            @if (displayMessage != null)
+            {
+                <h5 id="disMsg" class="text-primary">@displayMessage</h5>
+            }
+            <h1 class="text-gray-600">Contact Me</h1>
+            <p>Want to get in touch? Fill out the form below to send me a message and I will get back to you as soon as possible!</p>
+            <form asp-action="Contact">
+                <div class="form-floating">
+                    <input asp-for="Name" class="form-control" autocomplete="username" aria-required="true" required>
+                    <label asp-for="Name"></label>
+                    <span asp-validation-for="Name" class="text-danger"></span>
+                </div>
+                <div class="form-floating">
+                    <input asp-for="Email" class="form-control" autocomplete="email" aria-required="true" required>
+                    <label asp-for="Email"></label>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-floating">
+                    <input asp-for="PhoneNumber" class="form-control" autocomplete="email" aria-required="true">
+                    <label asp-for="PhoneNumber"></label>
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="form-floating">
+                    <input asp-for="Subject" class="form-control" autocomplete="subject" aria-required="true" required>
+                    <label asp-for="Subject"></label>
+                    <span asp-validation-for="Subject" class="text-danger"></span>
+                </div>
+                <div class="form-floating mt-2" id="deskMsg">
+                    <div class="bg-light">
+                        <textarea asp-for="Message" rows="5" class="form-control" required></textarea>
+                        <span asp-validation-for="Message" class="text-danger"></span>
+                    </div>
+                </div>
+                <div class="form-floating mt-2" id="mobMsg">
+                    <textarea asp-for="Message" rows="5" class="form-control" required></textarea>
+                    <label asp-for="Message"></label>
+                    <span asp-validation-for="Message" class="text-danger"></span>
+                </div>
+
+                <br>
+                <div id="success"></div>
+                <button type="submit" class="btn btn-gradient-primary-to-secondary w-50" id="sendMessageButton">Send</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        //Use summernote for text area
+        $('#Message').summernote({
+            placeholder: "Message"
+        });
+
+        //Clear display message after 3 seconds.
+        setTimeout(() => {
+            var disMsg = document.getElementById('disMsg');
+
+            if (disMsg != null){
+                disMsg.innerHTML = "";
+            }
+            
+        }, 3000);
+
+        //Store user's device details.
+        let details = navigator.userAgent;
+
+        //Keywords to search for.
+        let keywords = /android|iphone|kindle|ipad/i;
+
+        //Using test() method to search keywords in details.
+        let isMobileDevice = keywords.test(details);
+
+        //If mobile use normal textarea, otherwise summernote.
+        if (isMobileDevice) {
+            let deskMsg = document.getElementById("deskMsg")
+            deskMsg.remove();
+            console.log("You are using a Mobile Device");
+        } else {
+            let mobMsg = document.getElementById("mobMsg")
+            mobMsg.remove();
+            console.log("You are using Desktop");
+        }
+    </script>
+}
